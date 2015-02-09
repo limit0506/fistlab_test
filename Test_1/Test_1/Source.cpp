@@ -10,13 +10,13 @@ void PrintProcessNameAndID(DWORD processID)
 {
 	TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
 
-	// 프로세스 핸들 얻어보자
+	// Get a handle to the process.
 
 	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
 		PROCESS_VM_READ,
 		FALSE, processID);
 
-	// 프로세스 이름 얻자
+	// Get the process name.
 
 	if (NULL != hProcess)
 	{
@@ -31,18 +31,18 @@ void PrintProcessNameAndID(DWORD processID)
 		}
 	}
 
-	// 프로세스 이름이랑 PID 출력하자
+	// Print the process name and identifier.
 
 	_tprintf(TEXT("%s  (PID: %u)\n"), szProcessName, processID);
 
-	// 프로세스 핸들 다시 돌려주자 
+	// Release the handle to the process.
 
 	CloseHandle(hProcess);
 }
 
 int main(void)
 {
-	// PID의 리스트 얻자
+	// Get the list of process identifiers.
 
 	DWORD aProcesses[1024], cbNeeded, cProcesses;
 	unsigned int i;
@@ -53,11 +53,11 @@ int main(void)
 	}
 
 
-	// 어떻게 많은 프로세스 식별자 리턴할건지 계산하자
+	// Calculate how many process identifiers were returned.
 
 	cProcesses = cbNeeded / sizeof(DWORD);
 
-	// 반복하자
+	// Print the name and process identifier for each process.
 
 	for (i = 0; i < cProcesses; i++)
 	{
