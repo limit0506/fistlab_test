@@ -5,7 +5,10 @@
 
 // To ensure correct resolution of symbols, add Psapi.lib to TARGETLIBS
 // and compile with -DPSAPI_VERSION=1
+
 //test3 brach start!
+//test2 branch start!
+//finish
 
 void PrintProcessNameAndID(DWORD processID)
 {
