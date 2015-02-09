@@ -11,7 +11,6 @@
 //test2 branch start!
 //finish
 
->>>>>>> test1
 void PrintProcessNameAndID(DWORD processID)
 {
 	TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
