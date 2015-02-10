@@ -1,76 +1,131 @@
-#include <windows.h>
+#include <Windows.h>
 #include <stdio.h>
-#include <tchar.h>
-#include <psapi.h>
+#include <TCHAR.h>
+#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
+#define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
 
-// To ensure correct resolution of symbols, add Psapi.lib to TARGETLIBS
-// and compile with -DPSAPI_VERSION=1
 
-//test1 branch start!
-//test3 brach start!
-//test2 branch start!
-//finish
-
-void PrintProcessNameAndID(DWORD processID)
+typedef enum _SYSTEM_INFORMATION_CLASS
 {
-	TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
+	SystemBasicInformation,
+	SystemProcessorInformation,
+	SystemPerformanceInformation,
+	SystemTimeOfDayInformation,
+	SystemPathInformation,
+	SystemProcessInformation,
+	SystemCallCountInformation,
+	SystemDeviceInformation,
+	SystemProcessorPerformanceInformation,
+	SystemFlagsInformation,
+	SystemCallTimeInformation,
+	SystemModuleInformation,
+	SystemLocksInformation,
+	SystemStackTraceInformation,
+	SystemPagedPoolInformation,
+	SystemNonPagedPoolInformation,
+	SystemHandleInformation,
+	SystemObjectInformation,
+	SystemPageFileInformation,
+	SystemVdmInstemulInformation,
+	SystemVdmBopInformation,
+	SystemFileCacheInformation,
+	SystemPoolTagInformation,
+	SystemInterruptInformation,
+	SystemDpcBehaviorInformation,
+	SystemFullMemoryInformation,
+	SystemLoadGdiDriverInformation,
+	SystemUnloadGdiDriverInformation,
+	SystemTimeAdjustmentInformation,
+	SystemSummaryMemoryInformation,
+	SystemNextEventIdInformation,
+	SystemEventIdsInformation,
+	SystemCrashDumpInformation,
+	SystemExceptionInformation,
+	SystemCrashDumpStateInformation,
+	SystemKernelDebuggerInformation,
+	SystemContextSwitchInformation,
+	SystemRegistryQuotaInformation,
+	SystemExtendServiceTableInformation,
+	SystemPrioritySeperation,
+	SystemPlugPlayBusInformation,
+	SystemDockInformation,
+	SystemPowerInformationRedefine, // 이름이 중복되어서 변경하였습니다.
+	SystemProcessorSpeedInformation,
+	SystemCurrentTimeZoneInformation,
+	SystemLookasideInformation
+} SYSTEM_INFORMATION_CLASS, *PSYSTEM_INFORMATION_CLASS;
 
-	// Get a handle to the process.
 
-	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
-		PROCESS_VM_READ,
-		FALSE, processID);
+extern "C" NTSYSAPI NTSTATUS NTAPI NtQuerySystemInformation(
+	IN SYSTEM_INFORMATION_CLASS SystemInformationClass,
+	OUT PVOID SystemInformation,
+	IN ULONG SystemInformationLength,
+	OUT PULONG ReturnLength OPTIONAL);
 
-	// Get the process name.
+typedef struct _RTL_PROCESS_MODULE_INFORMATION {
+	HANDLE Section;
+	PVOID MappedBase;
+	PVOID ImageBase;
+	ULONG ImageSize;
+	ULONG Flags;
+	USHORT LoadOrderIndex;
+	USHORT InitOrderIndex;
+	USHORT LoadCount;
+	USHORT OffsetToFileName;
+	CHAR FullPathName[256];
+} RTL_PROCESS_MODULE_INFORMATION, *PRTL_PROCESS_MODULE_INFORMATION;
 
-	if (NULL != hProcess)
+typedef struct _RTL_PROCESS_MODULES {
+	ULONG NumberOfModules;
+	RTL_PROCESS_MODULE_INFORMATION Modules[1];
+} RTL_PROCESS_MODULES, *PRTL_PROCESS_MODULES;
+
+BOOL PrintSystemModuleList()
+{
+	NTSTATUS Status;
+	PRTL_PROCESS_MODULES ModuleInfo;
+	PRTL_PROCESS_MODULE_INFORMATION ModuleEntry;
+	ULONG ReturnedLength;
+	ULONG i;
+
+	Status = NtQuerySystemInformation(SystemModuleInformation,
+		NULL,
+		0,
+		&ReturnedLength);
+	if (Status != STATUS_INFO_LENGTH_MISMATCH)
 	{
-		HMODULE hMod;
-		DWORD cbNeeded;
-
-		if (EnumProcessModules(hProcess, &hMod, sizeof(hMod),
-			&cbNeeded))
-		{
-			GetModuleBaseName(hProcess, hMod, szProcessName,
-				sizeof(szProcessName) / sizeof(TCHAR));
-		}
+		return FALSE;
 	}
 
-	// Print the process name and identifier.
+	ModuleInfo = (PRTL_PROCESS_MODULES)malloc(ReturnedLength);
 
-	_tprintf(TEXT("%s  (PID: %u)\n"), szProcessName, processID);
+	Status = NtQuerySystemInformation(SystemModuleInformation,
+		ModuleInfo,
+		ReturnedLength,
+		&ReturnedLength);
+	if (!NT_SUCCESS(Status))
+	{
+		free(ModuleInfo);
 
-	// Release the handle to the process.
+		return NULL;
+	}
 
-	CloseHandle(hProcess);
+
+	for (i = 0; i < ModuleInfo->NumberOfModules; i++)
+	{
+		ModuleEntry = &ModuleInfo->Modules[i];
+
+		printf("%s\n", ModuleEntry->FullPathName);
+	}
+	free(ModuleInfo);
+
+	return TRUE;
 }
 
-int main(void)
+
+int _tmain(int argc, _TCHAR* argv[])
 {
-	// Get the list of process identifiers.
-
-	DWORD aProcesses[1024], cbNeeded, cProcesses;
-	unsigned int i;
-
-	if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded))
-	{
-		return 1;
-	}
-
-
-	// Calculate how many process identifiers were returned.
-
-	cProcesses = cbNeeded / sizeof(DWORD);
-
-	// Print the name and process identifier for each process.
-
-	for (i = 0; i < cProcesses; i++)
-	{
-		if (aProcesses[i] != 0)
-		{
-			PrintProcessNameAndID(aProcesses[i]);
-		}
-	}
+	PrintSystemModuleList();
 
 	return 0;
 }
