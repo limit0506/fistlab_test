@@ -9,7 +9,7 @@
 //fix2!!
 //new!!
 //new2!!
-
+//bug fix..
 typedef enum _SYSTEM_INFORMATION_CLASS
 {
 	SystemBasicInformation,
