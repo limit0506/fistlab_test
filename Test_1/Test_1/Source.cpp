@@ -4,12 +4,21 @@
 #define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
 #define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
 
+<<<<<<< .merge_file_a04128
 <<<<<<< .merge_file_a05248
 
 =======
 //fix!!
 //fix2!!
 >>>>>>> .merge_file_a06016
+=======
+
+//fix!!
+//fix2!!
+//new!!
+//new2!!
+
+>>>>>>> .merge_file_a01084
 typedef enum _SYSTEM_INFORMATION_CLASS
 {
 	SystemBasicInformation,
