@@ -9,7 +9,7 @@
 //fix2!!
 //new!!
 //new2!!
-
+//malware....
 typedef enum _SYSTEM_INFORMATION_CLASS
 {
 	SystemBasicInformation,
